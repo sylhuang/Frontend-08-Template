@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tic Tac Toe</title>
+    <style>
+      .row {
+        display: flex;
+      }
+      .cell {
+        width: 100px;
+        height: 100px;
+        background-color: gray;
+        display: inline-block;
+        vertical-align: middle;
+        text-align: center;
+        line-height: 100px;
+        border: solid 1px white;
+        font-size: xx-large;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <button onclick="init()">Restart</button>
+    </div>
+    <div>
+      <label for="switch">Play against AI</label>
+      <input type="checkbox" id="switch" onclick="switchAI()">
+    </div>
+    <div id='container'>
+    </div>
+  </body>
+  <script>
+    const num2icon = Object.freeze({
+      0: '',
+      1: '❌',
+      2: '⭕',
+    });
+    
+    let board;
+    let player;
+    let gameOver;
+    let pvp;
+
+    function init() {
+      let checkBox = document.getElementById("switch");
+
+      board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      player = 1;
+      gameOver = false;
+      pvp = !checkBox.checked;
+
+      show();
+    }
+
+    function switchAI() {
+      pvp = !pvp;
+    }
+
+    function move(pos) {
+      // block illegal move
+      if (board[pos] || gameOver) {
+        return;
+      }
+
+      board[pos] = player;
+      show();
+      setTimeout(() => {
+        if (checkVictory(board, pos)) {
+          gameOver = true;
+          alert(`${num2icon[player]} wins!`);
+        }
+
+        player = 3 - player;
+
+        if (!pvp && player !== 1) {
+          let { position } = findBestMove(board, player);
+          
+          if (position == null) gameOver = true;
+
+          move(position);
+        }
+      }, 0);
+    }
+
+    function show() {
+      let container = document.getElementById('container');
+      let row;
+
+      container.innerHTML = null;
+
+      for(let [idx, e] of board.entries()) {
+        if (idx % 3 === 0) {
+          row = document.createElement('div');
+          row.classList.add('row');
+        }
+
+        let cell = document.createElement('div');
+        
+        cell.classList.add('cell');
+        cell.innerText = num2icon[e];
+        cell.addEventListener('click', () => move(idx));
+        row.appendChild(cell);
+
+        if (idx % 3 === 2) {
+          container.appendChild(row);
+        }
+      }
+    }
+
+    function checkVictory(state, pos) {
+      const col = pos % 3;
+      const row = Math.floor(pos / 3);
+
+      // check row completion
+      if (state[col] === state[3 + col] && state[col] === state[6 + col]) {
+        return true;
+      }
+
+      // check column completion
+      if (state[3 * row] === state[3 * row + 1] && state[3 * row] === state[3 * row + 2]) {
+        return true;
+      }
+
+      // check diagonal
+      if (col === row && state[0] === state[4] && state[0] === state[8]) {
+        return true;
+      }
+
+      if (col + row === 2 && state[2] === state[4] && state[2] === state[6]) {
+        return true;
+      }
+
+      return false;
+    }
+
+    function findBestMove(state, ply) {
+      // check for immediate win
+      for (let [idx, e] of state.entries()) {
+        if (e) continue;
+
+        let copy = Object.create(state);
+        copy[idx] = ply;
+
+        if (checkVictory(copy, idx)) return {
+          result: 1,
+          position: idx,
+        };
+      }
+
+      let result = -2;
+      let pos;
+
+      for (let [idx, e] of state.entries()) {
+        if (e) continue;
+
+        let copy = Object.create(state);
+        copy[idx] = ply;
+
+        const { result: res } = findBestMove(copy, 3 - ply);
+
+        // check for immediate lose
+        if (res === -1) return {
+          result: 1,
+          position: idx,
+        }
+
+        if (-res > result) {
+          pos = idx;
+          result = -res;
+        }
+      }
+
+      return {
+        result: pos != null ? result : 0,
+        position: pos,
+      }
+    }
+
+    init();
+  </script>
+</html>
