@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shortest Path</title>
+    <style>
+      .row {
+        display: flex;
+      }
+      .cell {
+        width: 5px;
+        height: 5px;
+        line-height: 5px;
+        background-color: gray;
+        display: inline-block;
+        border: solid 1px white
+      }
+    </style>
+  </head>
+  <body>
+    <div id='container'></div>
+    <div>
+      <button onclick="save()">SAVE</button>
+      <button onclick="load()">LOAD</button>
+      <button onclick="clearAll()">CLEAR ALL</button>
+    </div>
+
+    <script>
+      // initialize map
+      let map = localStorage.getItem('map') ? JSON.parse(localStorage.getItem('map')) : Array(10000).fill(0);
+      let mousedown = false;
+      let clear = false;
+      let container = document.getElementById('container');
+
+      container.addEventListener('mousedown', (e) => {
+        mousedown = true;
+        clear = e.which === 3;
+      })
+
+      container.addEventListener('mouseup', () => {
+        mousedown = false;
+        clear = false;
+      });
+
+      container.addEventListener('contextmenu', e => e.preventDefault());
+
+      show();
+
+      function show() {
+        container.innerHTML = null;
+
+        for (let x = 0; x < 100; x++) {
+          let row = document.createElement('div');
+          row.classList.add('row');
+
+          for (let y = 0; y < 100; y++) {
+            let cell = document.createElement('div');
+            
+            cell.classList.add('cell');
+
+            if (map[100 * x + y] === 1) {
+              cell.style.backgroundColor = 'black';
+            }
+
+            cell.addEventListener('mousemove', () => {
+              if (mousedown) {
+                if (clear) {
+                  cell.style.backgroundColor = 'gray';
+                  map[100 * x + y] = 0;
+                } else {
+                  cell.style.backgroundColor = 'black';
+                  map[100 * x + y] = 1;
+                }
+              }
+            })
+
+            row.appendChild(cell);
+          }
+
+          container.appendChild(row);
+        }
+      }
+
+      function save() {
+        localStorage.setItem('map', JSON.stringify(map));
+      }
+
+      function load() {
+        map = localStorage.getItem('map') ? JSON.parse(localStorage.getItem('map')) : Array(10000).fill(0);
+        show();
+      }
+
+      function clearAll() {
+        map.fill(0);
+        show();
+      }
+    </script>
+  </body>
+</html>
