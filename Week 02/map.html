@@ -94,13 +94,87 @@
         show();
       }
 
+      // binary heap
+      class Sorted {
+        constructor(data, comparator) {
+          this.data = [];
+          this.comparator = comparator || ((a, b) => a - b);
+          this.heapify(data);
+        }
+
+        get length() { return this.data.length; }
+
+        heapify(data) {
+          for (let d of data) {
+            this.add(d);
+          }
+        }
+
+        parent(idx) {
+          return Math.floor((idx - 1) / 2);
+        }
+
+        swap(i, j) {
+          let temp = this.data[i];
+          this.data[i] = this.data[j];
+          this.data[j] = temp;
+        }
+
+        push(value) {
+          this.data.push(value);
+
+          let idx = this.data.length - 1;
+
+          while (idx > 0 && this.comparator(this.data[idx], this.data[this.parent(idx)]) > 0) {
+            this.swap(idx, this.parent(idx));
+            idx = this.parent(idx);
+          }
+        }
+
+        shift() {
+          this.swap(0, this.data.length - 1);
+
+          const res = this.data.pop();
+          let idx = 0;
+
+          while (idx < this.data.length) {
+            let lc = idx * 2 + 1;
+            let rc = idx * 2 + 2;
+            let swapChild;
+
+            if (lc >= this.data.length) break;
+            if (rc >= this.data.length) {
+              swapChild = lc;
+            } else {
+              swapChild = this.comparator(this.data[lc], this.data[rc]) > 0 ? lc : rc;
+            }
+
+            if (this.comparator(this.data[swapChild], this.data[idx]) > 0) {
+              this.swap(idx, swapChild);
+              idx = swapChild;
+            } else {
+              break;
+            }
+          }
+
+          return res;
+        }
+      }
+
       async function findPath(start, end) {
         const table = Object.create(map);
         const [sx, sy] = start;
         const [ex, ey] = end;
 
         // bfs
-        const queue = [];
+        // const queue = [];
+
+        // A*
+        const queue = new Sorted([], (a, b) => distance(b) - distance(a));
+
+        function distance(origin) {
+          return (end[0] - origin[0]) ** 2 + (end[1] - origin[1]) ** 2;
+        }
 
         function insert(x, y, pre) {
           // if out of bound / blocked / visited
@@ -117,7 +191,7 @@
           return queue.shift();
         }
 
-        insert(sx, sy);
+        insert(sx, sy, 2);
 
         while (queue.length) {
           let [cx, cy] = take();
@@ -127,13 +201,13 @@
 
             do {
               path.push([cx, cy]);
-              container.children[cx].children[cy].style.backgroundColor = 'green';
+              container.children[cx].children[cy].style.backgroundColor = 'red';
 
               [cx, cy] = table[100 * cx + cy];
             } while (cx !== sx || cy !== sy)
 
             path.push([cx, cy]);
-            container.children[cx].children[cy].style.backgroundColor = 'green';
+            container.children[cx].children[cy].style.backgroundColor = 'red';
 
             return path;
           }
