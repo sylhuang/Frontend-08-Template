@@ -9,7 +9,7 @@
       .cell {
         width: 5px;
         height: 5px;
-        line-height: 5px;
+        line-height: 7px;
         background-color: gray;
         display: inline-block;
         border: solid 1px white
@@ -92,6 +92,61 @@
       function clearAll() {
         map.fill(0);
         show();
+      }
+
+      async function findPath(start, end) {
+        const table = Object.create(map);
+        const [sx, sy] = start;
+        const [ex, ey] = end;
+
+        // bfs
+        const queue = [];
+
+        function insert(x, y, pre) {
+          // if out of bound / blocked / visited
+          if (x < 0 || x >= 100 || y < 0 || y >= 100 || table[100 * x + y]) {
+            return;
+          }
+
+          queue.push([x, y]);
+          table[100 * x + y] = pre;
+          container.children[x].children[y].style.backgroundColor = 'lightgreen';
+        }
+
+        function take() {
+          return queue.shift();
+        }
+
+        insert(sx, sy);
+
+        while (queue.length) {
+          let [cx, cy] = take();
+
+          if (cx === ex && cy === ey) {
+            const path = [];
+
+            do {
+              path.push([cx, cy]);
+              container.children[cx].children[cy].style.backgroundColor = 'green';
+
+              [cx, cy] = table[100 * cx + cy];
+            } while (cx !== sx || cy !== sy)
+
+            path.push([cx, cy]);
+            container.children[cx].children[cy].style.backgroundColor = 'green';
+
+            return path;
+          }
+
+          insert(cx + 1, cy, [cx, cy]);
+          insert(cx - 1, cy, [cx, cy]);
+          insert(cx, cy + 1, [cx, cy]);
+          insert(cx, cy - 1, [cx, cy]);
+          insert(cx + 1, cy + 1, [cx, cy]);
+          insert(cx - 1, cy - 1, [cx, cy]);
+          insert(cx - 1, cy + 1, [cx, cy]);
+          insert(cx + 1, cy - 1, [cx, cy]);
+        }
       }
     </script>
   </body>
