@@ -1,0 +1,44 @@
+<script>
+  function find(source, pattern) {
+    let nStar = 0;
+
+    for (let c of pattern) {
+      if (c === '*') nStar++;
+    }
+
+    if (nStar === 0) {
+      for (let i = 0; i < pattern.length; i++) {
+        if (source[i] !== pattern[i] && pattern[i] !== '?') return false;
+      }
+    }
+
+    let idx = 0;
+
+    for (idx = 0; pattern[idx] !== '*'; idx++) {
+      if (source[idx] !== pattern[idx] && pattern[idx] !== '?') return false;
+    }
+
+    let lastIdx = idx;
+
+    for (let p = 0; p < nStar - 1; p++) {
+      let subPattern = "";
+
+      while (pattern[++idx] !== '*') {
+        subPattern += pattern[idx];
+      }
+
+      let reg = new RegExp(subPattern.replace(/\?/g, "[\\s\\S]"), "g");
+      reg.lastIndex = lastIdx;
+
+      if (!reg.exec(source)) return false;
+
+      lastIdx = reg.lastIndex;
+    }
+
+    for (let j = 0; j < source.length - lastIdx && pattern[pattern.length - j] !== '*'; j++) {
+      if (source[source.length - j] !== pattern[pattern.length - j] && pattern[pattern.length - j] !== '?') return false;
+    }
+
+    return true;
+  }
+</script>
