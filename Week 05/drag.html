@@ -1,0 +1,79 @@
+<div id='container'>文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text
+文字 Text 文字 Text 文字 Text 文字 Text</div>
+<div id='dragable' style="display:inline-block;background-color:greenyellow;width:100px;height:100px">
+</div>
+<script>
+    let dragable = document.getElementById('dragable');
+    let baseX = 0, baseY = 0;
+
+    document.addEventListener('mousedown', event => {
+        let startX = event.clientX, startY = event.clientY;
+
+        let move = e => {
+            let nearestRange = getNearest(e.clientX, e.clientY);
+
+            // no need to delete old node because old node was replaced by the new one by default in any DOM operation
+            nearestRange.insertNode(dragable);
+
+            // dragable.style.transform = `translate(${e.clientX - startX + baseX}px, ${e.clientY - startY + baseY}px)`;
+        };
+
+        let up = e => {
+            baseX = e.clientX - startX + baseX;
+            baseY = e.clientY - startY + baseY;
+
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+        }
+
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+    })
+
+    let ranges = [];
+    let container = document.getElementById('container');
+
+    for (let i = 0; i < container.childNodes[0].textContent.length; i++) {
+        let range = document.createRange();
+        range.setStart(container.childNodes[0], i);
+        range.setEnd(container.childNodes[0], i);
+
+        ranges.push(range);
+    }
+
+    function getNearest(x, y) {
+        let min = Infinity;
+        let res = null;
+
+        for (let range of ranges) {
+            // get client rect here because clientX/Y could change after range table is contructed
+            let { x: rx, y: ry} = range.getBoundingClientRect();
+            let dist = (rx - x) ** 2 + (ry - y) ** 2;
+            
+            if (dist < min) {
+                res = range;
+                min = dist;
+            }
+        }
+
+        return res;
+    }
+
+    document.addEventListener('selectstart', event => event.preventDefault());
+</script>
